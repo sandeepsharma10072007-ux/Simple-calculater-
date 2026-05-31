@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple JS Calculator</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better aesthetics */
+        .calculator-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .btn-style {
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 4px #4b5563; /* Shadow for depth */
+            position: relative;
+            top: 0;
+        }
+        .btn-style:active {
+            box-shadow: 0 2px #4b5563;
+            top: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div id="calculator" class="w-full max-w-sm bg-white rounded-xl shadow-2xl p-4 md:p-6 border border-gray-200">
+        <h1 class="text-2xl font-extrabold text-gray-800 mb-4 text-center">Basic Calculator</h1>
+
+        <!-- Display Area -->
+        <div class="bg-gray-900 rounded-lg p-4 mb-4 shadow-inner">
+            <div id="previous-operand" class="text-gray-400 text-sm h-5 overflow-hidden text-right"></div>
+            <div id="current-operand" class="text-white text-4xl h-10 overflow-hidden text-right font-light">0</div>
+        </div>
+
+        <!-- Buttons Grid -->
+        <div class="grid calculator-grid gap-3">
+            <!-- Clear and Delete -->
+            <button data-all-clear class="btn-style bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl col-span-2">AC</button>
+            <button data-delete class="btn-style bg-gray-400 hover:bg-gray-500 text-gray-800 font-semibold py-3 rounded-xl">DEL</button>
+            <button data-operation="/" class="btn-style bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl">/</button>
+
+            <!-- Numbers 7-9 and * -->
+            <button data-number="7" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">7</button>
+            <button data-number="8" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">8</button>
+            <button data-number="9" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">9</button>
+            <button data-operation="*" class="btn-style bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl">*</button>
+
+            <!-- Numbers 4-6 and - -->
+            <button data-number="4" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">4</button>
+            <button data-number="5" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">5</button>
+            <button data-number="6" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">6</button>
+            <button data-operation="-" class="btn-style bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl">-</button>
+
+            <!-- Numbers 1-3 and + -->
+            <button data-number="1" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">1</button>
+            <button data-number="2" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">2</button>
+            <button data-number="3" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">3</button>
+            <button data-operation="+" class="btn-style bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl">+</button>
+
+            <!-- Decimal, 0, and Equals -->
+            <button data-number="." class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">.</button>
+            <button data-number="0" class="btn-style bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-xl">0</button>
+            <button data-equals class="btn-style bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl col-span-2">=</button>
+        </div>
+    </div>
+
+    <script>
+        class Calculator {
+            constructor(previousOperandTextElement, currentOperandTextElement) {
+                this.previousOperandTextElement = previousOperandTextElement
+                this.currentOperandTextElement = currentOperandTextElement
+                this.clear()
+            }
+
+            clear() {
+                this.currentOperand = '0'
+                this.previousOperand = ''
+                this.operation = undefined
+            }
+
+            delete() {
+                if (this.currentOperand === '0' && this.previousOperand === '') return
+                this.currentOperand = this.currentOperand.toString().slice(0, -1)
+                if (this.currentOperand === '') {
+                    this.currentOperand = '0'
+                }
+            }
+
+            appendNumber(number) {
+                if (number === '.' && this.currentOperand.includes('.')) return
+                if (this.currentOperand === '0' && number !== '.') {
+                    this.currentOperand = number.toString()
+                } else {
+                    this.currentOperand = this.currentOperand.toString() + number.toString()
+                }
+            }
+
+            chooseOperation(operation) {
+                if (this.currentOperand === '0' && this.previousOperand === '') return
+
+                if (this.previousOperand !== '') {
+                    this.compute()
+                }
+
+                this.operation = operation
+                this.previousOperand = this.currentOperand
+                this.currentOperand = '0'
+            }
+
+            compute() {
+                let computation
+                const prev = parseFloat(this.previousOperand)
+                const current = parseFloat(this.currentOperand)
+
+                if (isNaN(prev) || isNaN(current)) return
+
+                switch (this.operation) {
+                    case '+':
+                        computation = prev + current
+                        break
+                    case '-':
+                        computation = prev - current
+                        break
+                    case '*':
+                        computation = prev * current
+                        break
+                    case '/':
+                        if (current === 0) {
+                            computation = 'Error: Div by 0'
+                        } else {
+                            computation = prev / current
+                        }
+                        break
+                    default:
+                        return
+                }
+
+                this.currentOperand = computation.toString().includes('Error') ? computation : computation.toFixed(10).replace(/\.?0+$/, '')
+                this.operation = undefined
+                this.previousOperand = ''
+            }
+
+            getDisplayNumber(number) {
+                const stringNumber = number.toString()
+                if (stringNumber.includes('Error')) return stringNumber
+
+                const integerDigits = parseFloat(stringNumber.split('.')[0])
+                const decimalDigits = stringNumber.split('.')[1]
+                let integerDisplay
+
+                if (isNaN(integerDigits)) {
+                    integerDisplay = ''
+                } else {
+                    integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 })
+                }
+
+                if (decimalDigits != null) {
+                    return `${integerDisplay}.${decimalDigits}`
+                } else {
+                    return integerDisplay
+                }
+            }
+
+            updateDisplay() {
+                this.currentOperandTextElement.innerText = this.getDisplayNumber(this.currentOperand)
+                if (this.operation != null) {
+                    this.previousOperandTextElement.innerText =
+                        `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`
+                } else {
+                    this.previousOperandTextElement.innerText = ''
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const numberButtons = document.querySelectorAll('[data-number]')
+            const operationButtons = document.querySelectorAll('[data-operation]')
+            const equalsButton = document.querySelector('[data-equals]')
+            const deleteButton = document.querySelector('[data-delete]')
+            const allClearButton = document.querySelector('[data-all-clear]')
+            const previousOperandTextElement = document.getElementById('previous-operand')
+            const currentOperandTextElement = document.getElementById('current-operand')
+
+            const calculator = new Calculator(previousOperandTextElement, currentOperandTextElement)
+
+            numberButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    calculator.appendNumber(button.innerText)
+                    calculator.updateDisplay()
+                })
+            })
+
+            operationButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    calculator.chooseOperation(button.innerText)
+                    calculator.updateDisplay()
+                })
+            })
+
+            equalsButton.addEventListener('click', button => {
+                calculator.compute()
+                calculator.updateDisplay()
+            })
+
+            allClearButton.addEventListener('click', button => {
+                calculator.clear()
+                calculator.updateDisplay()
+            })
+
+            deleteButton.addEventListener('click', button => {
+                calculator.delete()
+                calculator.updateDisplay()
+            })
+
+            // Keyboard support (optional)
+            document.addEventListener('keydown', (e) => {
+                let key = e.key;
+
+                if ((key >= '0' && key <= '9') || key === '.') {
+                    calculator.appendNumber(key)
+                } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                    calculator.chooseOperation(key)
+                } else if (key === 'Enter' || key === '=') {
+                    e.preventDefault(); // Prevent default browser action for Enter
+                    calculator.compute()
+                } else if (key === 'Backspace') {
+                    calculator.delete()
+                } else if (key === 'Escape') {
+                    calculator.clear()
+                }
+                calculator.updateDisplay()
+            });
+
+            calculator.updateDisplay(); // Initial display setup
+        })
+    </script>
+</body>
+</html>
